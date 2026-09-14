@@ -8,20 +8,20 @@
 
 using namespace std;
 
-class nodo { 
+class nodoPais { 
     private:
         int codPais = 0;
         string nombre = "";
-        nodo *siguiente;
+        nodoPais *siguiente;
         
     public:
-        nodo(int IDPais, string pNombre) {        
+        nodoPais(int IDPais, string pNombre) {        
             codPais = IDPais;
             nombre = pNombre;
             siguiente = NULL;
         }
 
-        nodo(int IDPais, string pNombre, nodo *signodo) {
+        nodoPais(int IDPais, string pNombre, nodoPais *signodo) {
             codPais = IDPais;
             nombre = pNombre;
             siguiente = signodo;
@@ -30,7 +30,7 @@ class nodo {
     friend class Pais;
 };
 
-typedef nodo *pnodo;
+typedef nodoPais *pnodoPais;
 
 class Pais {
     public:
@@ -44,14 +44,15 @@ class Pais {
         bool ListaVacia() { return primero == NULL; }
         void MostrarTodaLista();
         void BuscarPais(int IDPais);
-        void CargarDesdeArchivo(string nombreArchivo);
+        bool ExistePais(int IDPais);
+        void CargarDesdeArchivoPais(string nombreArchivo);
     
     private:
-        pnodo primero;
+        pnodoPais primero;
 };
 
 Pais::~Pais() {
-    pnodo aux;
+    pnodoPais aux;
    
     while(primero) {
         aux = primero;
@@ -64,10 +65,10 @@ Pais::~Pais() {
  
 void Pais::Insertar(int IDPais, string pNombre) {
     if (ListaVacia()) {
-        primero = new nodo(IDPais, pNombre);
+        primero = new nodoPais(IDPais, pNombre);
     }
     else {
-        pnodo aux = primero;
+        pnodoPais aux = primero;
 
         while (true) {
 
@@ -78,7 +79,7 @@ void Pais::Insertar(int IDPais, string pNombre) {
             }
 
             if (aux->siguiente == NULL) {
-                aux->siguiente = new nodo(IDPais, pNombre);
+                aux->siguiente = new nodoPais(IDPais, pNombre);
                 return;
             }
 
@@ -89,7 +90,7 @@ void Pais::Insertar(int IDPais, string pNombre) {
 
 void Pais::MostrarTodaLista() {
     
-    nodo *aux;
+    nodoPais *aux;
     if (primero == NULL) {
         cout << "No hay elementos AQUI";
     }
@@ -105,7 +106,7 @@ void Pais::MostrarTodaLista() {
 }
 
 void Pais::BuscarPais(int IDPais) {
-    nodo *aux;
+    nodoPais *aux;
     aux = primero;
     while(aux != NULL) {
         if(IDPais == aux->codPais) {
@@ -118,7 +119,18 @@ void Pais::BuscarPais(int IDPais) {
     cout <<endl << "No existe ese codigo de pais" << endl;
 }
 
-void Pais::CargarDesdeArchivo(string nombreArchivo) {
+bool Pais::ExistePais(int IDPais) {
+    nodoPais *aux = primero;
+    while (aux != NULL) {
+        if (aux->codPais == IDPais) {
+            return true;
+        }
+        aux = aux->siguiente;
+    }
+    return false;
+}
+
+void Pais::CargarDesdeArchivoPais(string nombreArchivo) {
     ifstream archivo(nombreArchivo);
 
     if (!archivo.is_open()) {
