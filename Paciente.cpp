@@ -5,9 +5,9 @@
 #include <fstream>
 #include <sstream>
 #include "Ciudad.cpp"
- 
+
 using namespace std;
- 
+
 const int Tam_TablaPaciente = 13;
 
 class NodoPaciente {
@@ -23,7 +23,7 @@ class NodoPaciente {
             correo = pCorreo;
             siguiente = NULL;
             }
- 
+
 private:
     int IDPaciente;
     string nombre;
@@ -33,17 +33,17 @@ private:
     int codPais;
     string correo;
     NodoPaciente *siguiente;
- 
+
     friend class listaPacientes;
 };
- 
+
 typedef NodoPaciente *pnodoPaciente;
- 
+
 class listaPacientes {
     public:
         listaPacientes() { primero = NULL; }
         ~listaPacientes();
- 
+
         bool ListaVacia() { return primero == NULL; }
         bool ExisteID(int IDPaciente);
         void Insertar(int IDPaciente, string nombre, string fechaNacimiento,
@@ -53,7 +53,7 @@ class listaPacientes {
     private:
         pnodoPaciente primero;
     };
- 
+
 listaPacientes::~listaPacientes() {
     pnodoPaciente aux = primero;
     while (aux != NULL) {
@@ -63,7 +63,7 @@ listaPacientes::~listaPacientes() {
     }
     primero = NULL;
 }
- 
+
 bool listaPacientes::ExisteID(int IDPaciente) {
     pnodoPaciente aux = primero;
     while (aux != NULL) {
@@ -73,7 +73,7 @@ bool listaPacientes::ExisteID(int IDPaciente) {
     }
     return false;
 }
- 
+
 void listaPacientes::Insertar(int IDPaciente, string nombre, string fechaNacimiento,
                                     string telefono, int codCiudad, int codPais, string correo) {
     pnodoPaciente nuevo = new NodoPaciente(IDPaciente, nombre, fechaNacimiento, telefono,
@@ -89,7 +89,7 @@ void listaPacientes::Insertar(int IDPaciente, string nombre, string fechaNacimie
         aux->siguiente = nuevo;
         }
     }
- 
+
 bool listaPacientes::Buscar(int IDPaciente) {
     pnodoPaciente aux = primero;
     while (aux != NULL) {
@@ -124,7 +124,7 @@ private:
     int FuncionHash(int IDPaciente) {
         return IDPaciente % Tam_TablaPaciente;
     }
- 
+
 public:
     TablaHashingPaciente() {
         for (int i = 0; i < Tam_TablaPaciente; i++) {
@@ -136,15 +136,16 @@ public:
             delete tabla[i];
         }
     }
- 
+
     void Insertar(int IDPaciente, string nombre, string fechaNacimiento, string telefono,
                   int codCiudad, int codPais, string correo,
                   listaCiudad &listaCiudades, Pais &listaPaises);
     bool Buscar(int IDPaciente);
+    bool ExisteID(int IDPaciente);
     void Mostrar();
     void CargarArchivoPaciente(string nombreArchivo, listaCiudad &listaCiudades, Pais &listaPaises);
 };
- 
+
 void TablaHashingPaciente::Insertar(int IDPaciente, string nombre, string fechaNacimiento,
                                      string telefono, int codCiudad, int codPais, string correo,
                                      listaCiudad &listaCiudades, Pais &listaPaises) {
@@ -158,18 +159,18 @@ void TablaHashingPaciente::Insertar(int IDPaciente, string nombre, string fechaN
         cout << "El codigo de ciudad " << codCiudad << " no existe" << endl;
         return;
     }
- 
+
     int pos = FuncionHash(IDPaciente);
- 
+
     if (tabla[pos]->ExisteID(IDPaciente)) {
         cout << "El IDPaciente " << IDPaciente << " ya existe" << endl;
         return;
     }
- 
+
     tabla[pos]->Insertar(IDPaciente, nombre, fechaNacimiento, telefono, codCiudad, codPais, correo);
     cout << "Paciente " << IDPaciente << " insertado en la posicion " << pos << endl;
 }
- 
+
 bool TablaHashingPaciente::Buscar(int IDPaciente) {
     int pos = FuncionHash(IDPaciente);
     if (!tabla[pos]->Buscar(IDPaciente)) {
@@ -178,7 +179,12 @@ bool TablaHashingPaciente::Buscar(int IDPaciente) {
     }
     return true;
 }
- 
+
+bool TablaHashingPaciente::ExisteID(int IDPaciente) {
+    int pos = FuncionHash(IDPaciente);
+    return tabla[pos]->ExisteID(IDPaciente);
+}
+
 void TablaHashingPaciente::Mostrar() {
     cout << "\nTabla Hash de Pacientes:\n";
     for (int i = 0; i < Tam_TablaPaciente; i++) {
@@ -187,23 +193,23 @@ void TablaHashingPaciente::Mostrar() {
         cout << endl;
     }
 }
- 
+
 void TablaHashingPaciente::CargarArchivoPaciente(string nombreArchivo, listaCiudad &listaCiudades, Pais &listaPaises) {
     ifstream archivo(nombreArchivo);
- 
+
     if (!archivo.is_open()) {
         cout << "No se pudo abrir el archivo: " << nombreArchivo << endl;
         return;
     }
- 
+
     string linea;
     while (getline(archivo, linea)) {
         if (linea.empty()) 
             continue;
- 
+
         stringstream ss(linea);
         string campoID, nombre, fechaNacimiento, telefono, campoCodCiudad, campoCodPais, correo;
- 
+
         getline(ss, campoID, ';');
         getline(ss, nombre, ';');
         getline(ss, fechaNacimiento, ';');
@@ -211,15 +217,15 @@ void TablaHashingPaciente::CargarArchivoPaciente(string nombreArchivo, listaCiud
         getline(ss, campoCodCiudad, ';');
         getline(ss, campoCodPais, ';');
         getline(ss, correo);
- 
+
         int IDPaciente = stoi(campoID);
         int codCiudad = stoi(campoCodCiudad);
         int codPais = stoi(campoCodPais);
- 
+
         Insertar(IDPaciente, nombre, fechaNacimiento, telefono, codCiudad, codPais, correo,
                  listaCiudades, listaPaises);
     }
- 
+
     archivo.close();
     cout << "Archivo de pacientes cargado correctamente." << endl;
 }
