@@ -1,3 +1,4 @@
+#pragma once
 //Hecho por: Alejandro Rodriguez
  
 #include <iostream>
@@ -208,19 +209,19 @@ void TablaHashingPaciente::CargarArchivoPaciente(string nombreArchivo, listaCiud
             continue;
 
         stringstream ss(linea);
-        string campoID, nombre, fechaNacimiento, telefono, campoCodCiudad, campoCodPais, correo;
+        string campoID, nombre, fechaNacimiento, telefono, campoCodPais, campoCodCiudad, correo;
 
         getline(ss, campoID, ';');
         getline(ss, nombre, ';');
         getline(ss, fechaNacimiento, ';');
         getline(ss, telefono, ';');
-        getline(ss, campoCodCiudad, ';');
         getline(ss, campoCodPais, ';');
+        getline(ss, campoCodCiudad, ';');
         getline(ss, correo);
 
         int IDPaciente = stoi(campoID);
-        int codCiudad = stoi(campoCodCiudad);
         int codPais = stoi(campoCodPais);
+        int codCiudad = stoi(campoCodCiudad);
 
         Insertar(IDPaciente, nombre, fechaNacimiento, telefono, codCiudad, codPais, correo,
                  listaCiudades, listaPaises);

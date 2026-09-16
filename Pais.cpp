@@ -1,3 +1,4 @@
+#pragma once
 //Hecho por: Alejandro Rodriguez
 //13/09/2026
 

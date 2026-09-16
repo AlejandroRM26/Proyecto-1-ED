@@ -1,3 +1,4 @@
+#pragma once
 //Hecho por: David Leon
  
 #include <iostream>
