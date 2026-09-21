@@ -54,54 +54,48 @@ class Pais {
 
 Pais::~Pais() {
     pnodoPais aux;
-   
     while(primero) {
         aux = primero;
         primero = primero->siguiente;
         delete aux;
     }
-
     primero = NULL;
 }
  
 void Pais::Insertar(int IDPais, string pNombre) {
     if (ListaVacia()) {
         primero = new nodoPais(IDPais, pNombre);
-    }
+        }
     else {
         pnodoPais aux = primero;
-
         while (true) {
 
             if (aux->codPais == IDPais) {
                 cout << "El codigo " << aux->codPais << " proporcionado para el Pais "
                      << pNombre << " ya existe" << endl;
                 return;
-            }
-
+                }
             if (aux->siguiente == NULL) {
                 aux->siguiente = new nodoPais(IDPais, pNombre);
                 return;
-            }
-
+                }
             aux = aux->siguiente;
         }
     }
 }
 
 void Pais::MostrarTodaLista() {
-    
     nodoPais *aux;
     if (primero == NULL) {
         cout << "No hay elementos AQUI";
-    }
+        }
     else {
         aux = primero;
         while(aux) {
             cout << aux->codPais << " - ";
             cout << aux->nombre << " -> ";
             aux = aux->siguiente;
-        }
+            }
         cout << endl;
     }
 }
@@ -114,9 +108,9 @@ void Pais::BuscarPais(int IDPais) {
             cout << endl << aux->codPais << " - ";
             cout << aux->nombre;
             return;
-        }
+            }
         aux = aux->siguiente;
-    }
+        }
     cout <<endl << "No existe ese codigo de pais" << endl;
 }
 
@@ -125,9 +119,9 @@ bool Pais::ExistePais(int IDPais) {
     while (aux != NULL) {
         if (aux->codPais == IDPais) {
             return true;
-        }
+            }
         aux = aux->siguiente;
-    }
+        }
     return false;
 }
 
@@ -137,7 +131,7 @@ void Pais::CargarDesdeArchivoPais(string nombreArchivo) {
     if (!archivo.is_open()) {
         cout << "No se pudo abrir el archivo: " << nombreArchivo << endl;
         return;
-    }
+        }
 
     string linea;
     while (getline(archivo, linea)) {
@@ -149,9 +143,9 @@ void Pais::CargarDesdeArchivoPais(string nombreArchivo) {
         getline(ss, codigoStr, ';');
         getline(ss, nombre);
 
-        int codigo = stoi(codigoStr); // convierte el codigo a int
+        int codigo = stoi(codigoStr);
         Insertar(codigo, nombre);
-    }
+        }
     archivo.close();
     cout << "Archivo cargado correctamente." << endl;
 }
