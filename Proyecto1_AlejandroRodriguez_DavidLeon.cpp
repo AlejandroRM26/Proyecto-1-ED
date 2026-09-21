@@ -5,6 +5,11 @@
 
 using namespace std;
 
+class listaCiudad;
+class TablaHashingPaciente;
+class Citas;
+class Hospitalizaciones;
+
 class nodoPais { 
     private:
         int codPais = 0;
@@ -42,6 +47,8 @@ class Pais {
         void MostrarTodaLista();
         void BuscarPais(int IDPais);
         bool ExistePais(int IDPais);
+        bool EliminarPais(int IDPais, listaCiudad &listaCiudades, TablaHashingPaciente &pacientes,
+                          Citas &citas, Hospitalizaciones &hospitalizaciones);
         void CargarDesdeArchivoPais(string nombreArchivo);
     
     private:
@@ -174,8 +181,13 @@ class listaCiudad {
     void Insertar(int codPais, int codCiudad, string nombre, Pais &listaPaises);
     bool ListaVacia() { return primero == NULL; }
     bool ExisteCiudad(int codCiudad);
+    bool ExisteCiudadEnPais(int codPais, int codCiudad);
     void Mostrar();
     void BuscarCiudad(int IDCiudad, int IDPais, Pais &listaPaises);
+    bool EliminarCiudad(int IDPais, int IDCiudad, Pais &listaPaises, TablaHashingPaciente &pacientes,
+                        Citas &citas, Hospitalizaciones &hospitalizaciones);
+    int EliminarCiudadesDePais(int IDPais, TablaHashingPaciente &pacientes,
+                               Citas &citas, Hospitalizaciones &hospitalizaciones);
     void CargarArchivoCiudad(string nombreArchivo, Pais &listaPaises);
  
     private:
@@ -202,6 +214,20 @@ bool listaCiudad::ExisteCiudad(int codCiudad) {
     pnodoCiudad aux = primero;
     do {
         if (aux->codCiudad == codCiudad) {
+            return true;
+        }
+        aux = aux->siguiente;
+    } while (aux != primero);
+ 
+    return false;
+}
+ 
+bool listaCiudad::ExisteCiudadEnPais(int codPais, int codCiudad) {
+    if (ListaVacia()) return false;
+ 
+    pnodoCiudad aux = primero;
+    do {
+        if (aux->codCiudad == codCiudad && aux->codPais == codPais) {
             return true;
         }
         aux = aux->siguiente;
@@ -510,6 +536,8 @@ class listaPacientes {
         void Insertar(int IDPaciente, string nombre, string fechaNacimiento,
                         string telefono, int codCiudad, int codPais, string correo);
         bool Buscar(int IDPaciente);
+        bool Eliminar(int IDPaciente, Citas &citas, Hospitalizaciones &hospitalizaciones);
+        int EliminarPorCiudad(int codCiudad, Citas &citas, Hospitalizaciones &hospitalizaciones);
         void Mostrar();
     private:
         pnodoPaciente primero;
@@ -605,6 +633,8 @@ public:
     bool ExisteID(int IDPaciente);
     void Mostrar();
     void CargarArchivoPaciente(string nombreArchivo, listaCiudad &listaCiudades, Pais &listaPaises);
+    bool EliminarPaciente(int IDPaciente, Citas &citas, Hospitalizaciones &hospitalizaciones);
+    int EliminarPacientesDeCiudad(int codCiudad, Citas &citas, Hospitalizaciones &hospitalizaciones);
 };
 
 void TablaHashingPaciente::Insertar(int IDPaciente, string nombre, string fechaNacimiento,
@@ -727,6 +757,7 @@ class listaMedicos {
         void Insertar(int IDMedico, string nombre, string telefono, string correo, int idEspecialidad);
         bool Buscar(int IDMedico);
         bool ModificarTelefonoCorreo(int IDMedico, string telefono, string correo);
+        bool Eliminar(int IDMedico);
         void Mostrar();
     private:
         pnodoMedico primero;
@@ -795,6 +826,30 @@ bool listaMedicos::ModificarTelefonoCorreo(int IDMedico, string telefono, string
     return false;
 }
 
+bool listaMedicos::Eliminar(int IDMedico) {
+    if (ListaVacia())
+        return false;
+
+    if (primero->IDMedico == IDMedico) {
+        pnodoMedico borrar = primero;
+        primero = primero->siguiente;
+        delete borrar;
+        return true;
+    }
+
+    pnodoMedico aux = primero;
+    while (aux->siguiente != NULL) {
+        if (aux->siguiente->IDMedico == IDMedico) {
+            pnodoMedico borrar = aux->siguiente;
+            aux->siguiente = borrar->siguiente;
+            delete borrar;
+            return true;
+        }
+        aux = aux->siguiente;
+    }
+    return false;
+}
+
 void listaMedicos::Mostrar() {
     pnodoMedico aux = primero;
     while (aux != NULL) {
@@ -830,6 +885,7 @@ public:
     bool ModificarTelefonoCorreo(int IDMedico, string telefono, string correo);
     void Mostrar();
     void CargarArchivoMedico(string nombreArchivo, listaEspecialidad &listaEspecialidades);
+    bool EliminarMedico(int IDMedico, Citas &citas);
 };
 
 void TablaHashingMedico::Insertar(int IDMedico, string nombre, string telefono, string correo,
@@ -1157,11 +1213,16 @@ class Citas {
                                     TablaHashingPaciente &pacientes, TablaHashingMedico &medicos);
         void Mostrar();
 
+        int EliminarCitasDePaciente(int IDPaciente);
+        int EliminarCitasDeMedico(int IDMedico);
+
         void LeerDesdeArchivo(string nombreArchivo, TablaHashingPaciente &pacientes, TablaHashingMedico &medicos);
 
     private:
         pnodoCita primero;
         pnodoCita ultimo;
+
+        void EliminarNodo(pnodoCita nodo);
 };
 
 Citas::~Citas() {
@@ -1386,6 +1447,8 @@ class Hospitalizaciones {
         bool Buscar(int IDHospitalizacion, TablaHashingPaciente &pacientes, listaHabitacion &habitaciones);
         void Mostrar();
 
+        int EliminarHospitalizacionesDePaciente(int IDPaciente);
+
         void LeerDesdeArchivo(string nombreArchivo, TablaHashingPaciente &pacientes, listaHabitacion &habitaciones);
 
     private:
@@ -1393,6 +1456,7 @@ class Hospitalizaciones {
         pnodoHospitalizacion ultimo;
 
         bool TieneFechaSalidaRegistrada(string fechaSalida);
+        void EliminarNodo(pnodoHospitalizacion nodo);
     };
 
 Hospitalizaciones::~Hospitalizaciones() {
@@ -1553,6 +1617,270 @@ void Hospitalizaciones::LeerDesdeArchivo(string nombreArchivo, TablaHashingPacie
     }
 
     archivo.close();
+}
+
+//Eliminaciones
+
+void Citas::EliminarNodo(pnodoCita nodo) {
+    if (nodo->anterior != NULL)
+        nodo->anterior->siguiente = nodo->siguiente;
+    else
+        primero = nodo->siguiente;
+
+    if (nodo->siguiente != NULL)
+        nodo->siguiente->anterior = nodo->anterior;
+    else
+        ultimo = nodo->anterior;
+
+    delete nodo;
+}
+
+int Citas::EliminarCitasDePaciente(int IDPaciente) {
+    int eliminadas = 0;
+    pnodoCita aux = primero;
+    while (aux != NULL) {
+        pnodoCita siguiente = aux->siguiente;
+        if (aux->IDPaciente == IDPaciente) {
+            EliminarNodo(aux);
+            eliminadas++;
+        }
+        aux = siguiente;
+    }
+    return eliminadas;
+}
+
+int Citas::EliminarCitasDeMedico(int IDMedico) {
+    int eliminadas = 0;
+    pnodoCita aux = primero;
+    while (aux != NULL) {
+        pnodoCita siguiente = aux->siguiente;
+        if (aux->IDMedico == IDMedico) {
+            EliminarNodo(aux);
+            eliminadas++;
+        }
+        aux = siguiente;
+    }
+    return eliminadas;
+}
+
+void Hospitalizaciones::EliminarNodo(pnodoHospitalizacion nodo) {
+    if (nodo->anterior != NULL)
+        nodo->anterior->siguiente = nodo->siguiente;
+    else
+        primero = nodo->siguiente;
+
+    if (nodo->siguiente != NULL)
+        nodo->siguiente->anterior = nodo->anterior;
+    else
+        ultimo = nodo->anterior;
+
+    delete nodo;
+}
+
+int Hospitalizaciones::EliminarHospitalizacionesDePaciente(int IDPaciente) {
+    int eliminadas = 0;
+    pnodoHospitalizacion aux = primero;
+    while (aux != NULL) {
+        pnodoHospitalizacion siguiente = aux->siguiente;
+        if (aux->IDPaciente == IDPaciente) {
+            EliminarNodo(aux);
+            eliminadas++;
+        }
+        aux = siguiente;
+    }
+    return eliminadas;
+}
+
+bool listaPacientes::Eliminar(int IDPaciente, Citas &citas, Hospitalizaciones &hospitalizaciones) {
+    if (ListaVacia())
+        return false;
+
+    pnodoPaciente borrar = NULL;
+
+    if (primero->IDPaciente == IDPaciente) {
+        borrar = primero;
+        primero = primero->siguiente;
+    }
+    else {
+        pnodoPaciente aux = primero;
+        while (aux->siguiente != NULL && aux->siguiente->IDPaciente != IDPaciente) {
+            aux = aux->siguiente;
+        }
+        if (aux->siguiente == NULL)
+            return false;
+
+        borrar = aux->siguiente;
+        aux->siguiente = borrar->siguiente;
+    }
+
+    int citasEliminadas = citas.EliminarCitasDePaciente(IDPaciente);
+    int hospitalizacionesEliminadas = hospitalizaciones.EliminarHospitalizacionesDePaciente(IDPaciente);
+    delete borrar;
+
+    cout << "Paciente " << IDPaciente << " eliminado correctamente." << endl;
+    cout << "  Citas eliminadas: " << citasEliminadas << endl;
+    cout << "  Hospitalizaciones eliminadas: " << hospitalizacionesEliminadas << endl;
+    return true;
+}
+
+int listaPacientes::EliminarPorCiudad(int codCiudad, Citas &citas, Hospitalizaciones &hospitalizaciones) {
+    int eliminados = 0;
+    pnodoPaciente aux = primero;
+    while (aux != NULL) {
+        pnodoPaciente siguiente = aux->siguiente;
+        if (aux->codCiudad == codCiudad) {
+            Eliminar(aux->IDPaciente, citas, hospitalizaciones);
+            eliminados++;
+        }
+        aux = siguiente;
+    }
+    return eliminados;
+}
+
+bool TablaHashingPaciente::EliminarPaciente(int IDPaciente, Citas &citas, Hospitalizaciones &hospitalizaciones) {
+    int pos = FuncionHash(IDPaciente);
+    if (!tabla[pos]->ExisteID(IDPaciente)) {
+        cout << "El paciente con IDPaciente " << IDPaciente << " no existe" << endl;
+        return false;
+    }
+    return tabla[pos]->Eliminar(IDPaciente, citas, hospitalizaciones);
+}
+
+int TablaHashingPaciente::EliminarPacientesDeCiudad(int codCiudad, Citas &citas, Hospitalizaciones &hospitalizaciones) {
+    int eliminados = 0;
+    for (int i = 0; i < Tam_TablaPaciente; i++) {
+        eliminados += tabla[i]->EliminarPorCiudad(codCiudad, citas, hospitalizaciones);
+    }
+    return eliminados;
+}
+
+
+bool TablaHashingMedico::EliminarMedico(int IDMedico, Citas &citas) {
+    int pos = FuncionHash(IDMedico);
+    if (!tabla[pos]->ExisteID(IDMedico)) {
+        cout << "El medico con IDMedico " << IDMedico << " no existe" << endl;
+        return false;
+    }
+
+    int citasEliminadas = citas.EliminarCitasDeMedico(IDMedico);
+    tabla[pos]->Eliminar(IDMedico);
+
+    cout << "Medico " << IDMedico << " eliminado correctamente." << endl;
+    cout << "Citas eliminadas: " << citasEliminadas << endl;
+    return true;
+}
+
+int listaCiudad::EliminarCiudadesDePais(int IDPais, TablaHashingPaciente &pacientes,
+                                        Citas &citas, Hospitalizaciones &hospitalizaciones) {
+    if (ListaVacia()) 
+        return 0;
+
+    int eliminadas = 0;
+
+    pnodoCiudad ultimo = primero;
+    while (ultimo->siguiente != primero) {
+        ultimo = ultimo->siguiente;
+    }
+    ultimo->siguiente = NULL;
+
+    while (primero != NULL && primero->codPais == IDPais) {
+        pnodoCiudad borrar = primero;
+        pacientes.EliminarPacientesDeCiudad(borrar->codCiudad, citas, hospitalizaciones);
+        primero = primero->siguiente;
+        delete borrar;
+        eliminadas++;
+        }
+
+    if (primero == NULL) 
+        return eliminadas;
+
+    pnodoCiudad aux = primero;
+    while (aux->siguiente != NULL) {
+        if (aux->siguiente->codPais == IDPais) {
+            pnodoCiudad borrar = aux->siguiente;
+            pacientes.EliminarPacientesDeCiudad(borrar->codCiudad, citas, hospitalizaciones);
+            aux->siguiente = borrar->siguiente;
+            delete borrar;
+            eliminadas++;
+        }
+        else {
+            aux = aux->siguiente;
+        }
+    }
+
+    aux->siguiente = primero;
+    return eliminadas;
+}
+
+bool listaCiudad::EliminarCiudad(int IDPais, int IDCiudad, Pais &listaPaises, TablaHashingPaciente &pacientes,
+                                 Citas &citas, Hospitalizaciones &hospitalizaciones) {
+    if (!listaPaises.ExistePais(IDPais)) {
+        cout << "El codigo de pais " << IDPais << " no existe" << endl;
+        return false;
+    }
+    if (!ExisteCiudadEnPais(IDPais, IDCiudad)) {
+        cout << "El codigo de ciudad " << IDCiudad << " no existe en el pais " << IDPais << endl;
+        return false;
+    }
+
+    int pacientesEliminados = pacientes.EliminarPacientesDeCiudad(IDCiudad, citas, hospitalizaciones);
+
+    if (primero->siguiente == primero) {
+        delete primero;
+        primero = NULL;
+    }
+    else if (primero->codCiudad == IDCiudad) {
+        pnodoCiudad ultimo = primero;
+        while (ultimo->siguiente != primero) {
+            ultimo = ultimo->siguiente;
+        }
+        pnodoCiudad borrar = primero;
+        primero = primero->siguiente;
+        ultimo->siguiente = primero;
+        delete borrar;
+    }
+    else {
+        pnodoCiudad anterior = primero;
+        while (anterior->siguiente->codCiudad != IDCiudad) {
+            anterior = anterior->siguiente;
+        }
+        pnodoCiudad borrar = anterior->siguiente;
+        anterior->siguiente = borrar->siguiente;
+        delete borrar;
+    }
+
+    cout << "Ciudad " << IDCiudad << " del pais " << IDPais << " eliminada correctamente." << endl;
+    cout << "Pacientes eliminados: " << pacientesEliminados << endl;
+    return true;
+}
+
+bool Pais::EliminarPais(int IDPais, listaCiudad &listaCiudades, TablaHashingPaciente &pacientes,
+                        Citas &citas, Hospitalizaciones &hospitalizaciones) {
+    if (!ExistePais(IDPais)) {
+        cout << "El codigo de pais " << IDPais << " no existe" << endl;
+        return false;
+    }
+
+    int ciudadesEliminadas = listaCiudades.EliminarCiudadesDePais(IDPais, pacientes, citas, hospitalizaciones);
+
+    if (primero->codPais == IDPais) {
+        pnodoPais borrar = primero;
+        primero = primero->siguiente;
+        delete borrar;
+    }
+    else {
+        pnodoPais aux = primero;
+        while (aux->siguiente->codPais != IDPais) {
+            aux = aux->siguiente;
+        }
+        pnodoPais borrar = aux->siguiente;
+        aux->siguiente = borrar->siguiente;
+        delete borrar;
+    }
+
+    cout << "Pais " << IDPais << " eliminado correctamente." << endl;
+    cout << "Ciudades eliminadas: " << ciudadesEliminadas << endl;
+    return true;
 }
 
 #include <limits>
@@ -1780,18 +2108,108 @@ void MenuBuscar() {
     } while (opcion != 0);
 }
 
+bool Confirmar(string mensaje) {
+    int respuesta = leerEntero(mensaje + " (1 = Si, 0 = No): ");
+    if (respuesta != 1) {
+        cout << "Eliminacion cancelada." << endl;
+        return false;
+    }
+    return true;
+}
+
+void EliminarPais() {
+    int cod = leerEntero("Codigo de pais: ");
+    if (!paises.ExistePais(cod)) {
+        cout << "El codigo de pais " << cod << " no existe" << endl;
+        return;
+    }
+
+    paises.BuscarPais(cod);
+    cout << endl;
+    if (!Confirmar("Se eliminaran tambien sus ciudades, pacientes, citas y hospitalizaciones. Desea continuar?"))
+        return;
+
+    paises.EliminarPais(cod, ciudades, pacientes, citas, hospitalizaciones);
+}
+
+void EliminarCiudad() {
+    int codPais = leerEntero("Codigo de pais: ");
+    if (!paises.ExistePais(codPais)) {
+        cout << "El codigo de pais " << codPais << " no existe" << endl;
+        return;
+    }
+
+    int codCiudad = leerEntero("Codigo de ciudad: ");
+    if (!ciudades.ExisteCiudadEnPais(codPais, codCiudad)) {
+        cout << "El codigo de ciudad " << codCiudad << " no existe en el pais " << codPais << endl;
+        return;
+    }
+
+    ciudades.BuscarCiudad(codCiudad, codPais, paises);
+    if (!Confirmar("Se eliminaran tambien sus pacientes, citas y hospitalizaciones. Desea continuar?"))
+        return;
+
+    ciudades.EliminarCiudad(codPais, codCiudad, paises, pacientes, citas, hospitalizaciones);
+}
+
+void EliminarPaciente() {
+    int id = leerEntero("IDPaciente: ");
+    if (!pacientes.Buscar(id))
+        return;
+
+    if (!Confirmar("\nSe eliminaran tambien sus citas y hospitalizaciones. Desea continuar?"))
+        return;
+
+    pacientes.EliminarPaciente(id, citas, hospitalizaciones);
+}
+
+void EliminarMedico() {
+    int id = leerEntero("IDMedico: ");
+    if (!medicos.Buscar(id))
+        return;
+
+    if (!Confirmar("\nSe eliminaran tambien sus citas. Desea continuar?"))
+        return;
+
+    medicos.EliminarMedico(id, citas);
+}
+
+void MenuEliminar() {
+    int opcion;
+    do {
+        cout << "\n--- Eliminar ---" << endl;
+        cout << "1. Pais" << endl;
+        cout << "2. Ciudad" << endl;
+        cout << "3. Paciente" << endl;
+        cout << "4. Medico" << endl;
+        cout << "0. Volver" << endl;
+        opcion = leerEntero("Opcion: ");
+
+        switch (opcion) {
+            case 1: EliminarPais(); break;
+            case 2: EliminarCiudad(); break;
+            case 3: EliminarPaciente(); break;
+            case 4: EliminarMedico(); break;
+            case 0: break;
+            default: cout << "Opcion invalida" << endl;
+        }
+    } while (opcion != 0);
+}
+
 void MenuMantenimiento() {
     int opcion;
     do {
         cout << "\n--- Mantenimiento de la Base de Datos ---" << endl;
         cout << "1. Inserciones" << endl;
         cout << "2. Busqueda" << endl;
+        cout << "3. Eliminaciones" << endl;
         cout << "0. Volver" << endl;
         opcion = leerEntero("Opcion: ");
 
         switch (opcion) {
             case 1: MenuInsertar(); break;
             case 2: MenuBuscar(); break;
+            case 3: MenuEliminar(); break;
             case 0: break;
             default: cout << "Opcion invalida" << endl;
         }

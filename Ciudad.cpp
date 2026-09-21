@@ -39,6 +39,9 @@ class listaCiudad {
     bool ExisteCiudad(int codCiudad);
     void Mostrar();
     void BuscarCiudad(int IDCiudad, int IDPais, Pais &listaPaises);
+    int EliminarCiudadesDePais(int IDPais);
+    void EliminarPais(int IDPais, Pais &listaPaises);
+    void EliminarCiudad(int IDCiudad);
     void CargarArchivoCiudad(string nombreArchivo, Pais &listaPaises);
  
     private:
@@ -163,4 +166,55 @@ void listaCiudad::CargarArchivoCiudad(string nombreArchivo, Pais &listaPaises) {
 
     archivo.close();
     cout << "Archivo cargado correctamente." << endl;
+}
+
+int listaCiudad::EliminarCiudadesDePais(int IDPais) {
+    if (ListaVacia()) 
+        return 0;
+
+    int eliminadas = 0;
+
+    pnodoCiudad ultimo = primero;
+    while (ultimo->siguiente != primero) {
+        ultimo = ultimo->siguiente;
+    }
+    ultimo->siguiente = NULL;
+
+    while (primero != NULL && primero->codPais == IDPais) {
+        pnodoCiudad borrar = primero;
+        primero = primero->siguiente;
+        delete borrar;
+        eliminadas++;
+        }
+
+    if (primero == NULL) 
+        return eliminadas;
+
+    pnodoCiudad aux = primero;
+    while (aux->siguiente != NULL) {
+        if (aux->siguiente->codPais == IDPais) {
+            pnodoCiudad borrar = aux->siguiente;
+            aux->siguiente = borrar->siguiente;
+            delete borrar;
+            eliminadas++;
+        }
+        else {
+            aux = aux->siguiente;
+        }
+    }
+    aux->siguiente = primero;
+    return eliminadas;
+}
+
+void listaCiudad::EliminarPais(int IDPais, Pais &listaPaises) {
+    if (!listaPaises.ExistePais(IDPais)) {
+        cout << "El codigo de pais " << IDPais << " no existe" << endl;
+        return;
+    }
+
+    int ciudadesEliminadas = EliminarCiudadesDePais(IDPais);
+    listaPaises.EliminarPais(IDPais);
+
+    cout << "Pais " << IDPais << " eliminado correctamente." << endl;
+    cout << "Ciudades eliminadas: " << ciudadesEliminadas << endl;
 }

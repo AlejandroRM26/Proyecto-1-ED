@@ -46,6 +46,7 @@ class Pais {
         void MostrarTodaLista();
         void BuscarPais(int IDPais);
         bool ExistePais(int IDPais);
+        bool EliminarPais(int IDPais);
         void CargarDesdeArchivoPais(string nombreArchivo);
     
     private:
@@ -125,6 +126,30 @@ bool Pais::ExistePais(int IDPais) {
     return false;
 }
 
+bool Pais::EliminarPais(int IDPais) {
+    if (ListaVacia())
+        return false;
+    
+    if (primero->codPais == IDPais) {
+        pnodoPais borrar = primero;
+        primero = primero->siguiente;
+        delete borrar;
+        return true;
+        }
+    
+    pnodoPais aux = primero;
+    while(aux->siguiente != NULL) {
+        if(aux->siguiente->codPais == IDPais) {
+            pnodoPais borrar = aux->siguiente;
+            aux->siguiente = borrar->siguiente;
+            delete borrar;
+            return true;
+            }
+        aux = aux->siguiente;
+        }
+    return false;
+}
+
 void Pais::CargarDesdeArchivoPais(string nombreArchivo) {
     ifstream archivo(nombreArchivo);
 
@@ -149,4 +174,3 @@ void Pais::CargarDesdeArchivoPais(string nombreArchivo) {
     archivo.close();
     cout << "Archivo cargado correctamente." << endl;
 }
-
