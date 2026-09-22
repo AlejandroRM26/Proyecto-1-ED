@@ -1,3 +1,5 @@
+//Elaborado por David Leon y Alejandro Rodriguez
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -48,6 +50,7 @@ class Pais {
         void MostrarTodaLista();
         void BuscarPais(int IDPais);
         bool ExistePais(int IDPais);
+        bool Modificar(int IDPais, string nuevoNombre);
         bool EliminarPais(int IDPais, listaCiudad &listaCiudades, TablaHashingPaciente &pacientes,
                           Citas &citas, Hospitalizaciones &hospitalizaciones);
         void CargarDesdeArchivoPais(string nombreArchivo);
@@ -129,6 +132,24 @@ bool Pais::ExistePais(int IDPais) {
     return false;
 }
 
+bool Pais::Modificar(int IDPais, string nuevoNombre) {
+    if (!ExistePais(IDPais)) {
+        cout << "El codigo de pais " << IDPais << " no existe" << endl;
+        return false;
+    }
+
+    pnodoPais aux = primero;
+    while (aux != NULL) {
+        if (aux->codPais == IDPais) {
+            aux->nombre = nuevoNombre;
+            cout << "Nombre del pais actualizado correctamente." << endl;
+            return true;
+        }
+        aux = aux->siguiente;
+    }
+    return false;
+}
+
 void Pais::CargarDesdeArchivoPais(string nombreArchivo) {
     ifstream archivo(nombreArchivo);
 
@@ -185,6 +206,7 @@ class listaCiudad {
     bool ExisteCiudadEnPais(int codPais, int codCiudad);
     void Mostrar();
     void BuscarCiudad(int IDCiudad, int IDPais, Pais &listaPaises);
+    bool ModificarNombre(int IDPais, int IDCiudad, string nuevoNombre, Pais &listaPaises);
     bool EliminarCiudad(int IDPais, int IDCiudad, Pais &listaPaises, TablaHashingPaciente &pacientes,
                         Citas &citas, Hospitalizaciones &hospitalizaciones);
     int EliminarCiudadesDePais(int IDPais, TablaHashingPaciente &pacientes,
@@ -298,6 +320,29 @@ void listaCiudad::BuscarCiudad(int IDCiudad, int IDPais, Pais &listaPaises) {
     } while (aux != primero);
  
     cout << "La ciudad no existe" << endl;
+}
+
+bool listaCiudad::ModificarNombre(int IDPais, int IDCiudad, string nuevoNombre, Pais &listaPaises) {
+    if (!listaPaises.ExistePais(IDPais)) {
+        cout << "El codigo de pais " << IDPais << " no existe" << endl;
+        return false;
+    }
+    if (!ExisteCiudadEnPais(IDPais, IDCiudad)) {
+        cout << "El codigo de ciudad " << IDCiudad << " no existe en el pais " << IDPais << endl;
+        return false;
+    }
+
+    pnodoCiudad aux = primero;
+    do {
+        if (aux->codCiudad == IDCiudad && aux->codPais == IDPais) {
+            aux->nombre = nuevoNombre;
+            cout << "Nombre de la ciudad actualizado correctamente." << endl;
+            return true;
+        }
+        aux = aux->siguiente;
+    } while (aux != primero);
+
+    return false;
 }
 
 void listaCiudad::CargarArchivoCiudad(string nombreArchivo, Pais &listaPaises) {
@@ -538,6 +583,8 @@ class listaPacientes {
         void Insertar(int IDPaciente, string nombre, string fechaNacimiento,
                         string telefono, int codCiudad, int codPais, string correo);
         bool Buscar(int IDPaciente);
+        bool ExisteEnCiudad(int codCiudad, int IDPaciente);
+        bool ModificarTelefonoCorreo(int IDPaciente, string telefono, string correo);
         bool Eliminar(int IDPaciente, Citas &citas, Hospitalizaciones &hospitalizaciones);
         int EliminarPorCiudad(int codCiudad, Citas &citas, Hospitalizaciones &hospitalizaciones);
         void Mostrar();
@@ -599,6 +646,29 @@ bool listaPacientes::Buscar(int IDPaciente) {
     return false;
 }
 
+bool listaPacientes::ExisteEnCiudad(int codCiudad, int IDPaciente) {
+    pnodoPaciente aux = primero;
+    while (aux != NULL) {
+        if (aux->IDPaciente == IDPaciente && aux->codCiudad == codCiudad)
+            return true;
+        aux = aux->siguiente;
+    }
+    return false;
+}
+
+bool listaPacientes::ModificarTelefonoCorreo(int IDPaciente, string telefono, string correo) {
+    pnodoPaciente aux = primero;
+    while (aux != NULL) {
+        if (aux->IDPaciente == IDPaciente) {
+            aux->telefono = telefono;
+            aux->correo = correo;
+            return true;
+        }
+        aux = aux->siguiente;
+    }
+    return false;
+}
+
 void listaPacientes::Mostrar() {
     pnodoPaciente aux = primero;
     while (aux != NULL) {
@@ -633,6 +703,8 @@ public:
                   listaCiudad &listaCiudades, Pais &listaPaises);
     bool Buscar(int IDPaciente);
     bool ExisteID(int IDPaciente);
+    bool ModificarTelefonoCorreo(int codCiudad, int IDPaciente, string telefono, string correo,
+                                  listaCiudad &listaCiudades);
     void Mostrar();
     void CargarArchivoPaciente(string nombreArchivo, listaCiudad &listaCiudades, Pais &listaPaises);
     bool EliminarPaciente(int IDPaciente, Citas &citas, Hospitalizaciones &hospitalizaciones);
@@ -676,6 +748,25 @@ bool TablaHashingPaciente::Buscar(int IDPaciente) {
 bool TablaHashingPaciente::ExisteID(int IDPaciente) {
     int pos = FuncionHash(IDPaciente);
     return tabla[pos]->ExisteID(IDPaciente);
+}
+
+bool TablaHashingPaciente::ModificarTelefonoCorreo(int codCiudad, int IDPaciente, string telefono,
+                                                    string correo, listaCiudad &listaCiudades) {
+    if (!listaCiudades.ExisteCiudad(codCiudad)) {
+        cout << "El codigo de ciudad " << codCiudad << " no existe" << endl;
+        return false;
+    }
+
+    int pos = FuncionHash(IDPaciente);
+
+    if (!tabla[pos]->ExisteEnCiudad(codCiudad, IDPaciente)) {
+        cout << "El paciente " << IDPaciente << " no existe en la ciudad " << codCiudad << endl;
+        return false;
+    }
+
+    tabla[pos]->ModificarTelefonoCorreo(IDPaciente, telefono, correo);
+    cout << "Telefono y correo del paciente actualizados correctamente." << endl;
+    return true;
 }
 
 void TablaHashingPaciente::Mostrar() {
@@ -1452,6 +1543,8 @@ class Hospitalizaciones {
                       string fechaIngreso, string fechaSalida, string motivo,
                       TablaHashingPaciente &pacientes, listaHabitacion &habitaciones);
         bool Buscar(int IDHospitalizacion, TablaHashingPaciente &pacientes, listaHabitacion &habitaciones);
+        bool ModificarMotivo(int IDHospitalizacion, string nuevoMotivo, TablaHashingPaciente &pacientes,
+                             listaHabitacion &habitaciones);
         void Mostrar();
 
         bool EliminarHospitalizacion(int IDHospitalizacion, TablaHashingPaciente &pacientes,
@@ -1560,6 +1653,33 @@ bool Hospitalizaciones::Buscar(int IDHospitalizacion, TablaHashingPaciente &paci
             }
 
             cout << "Motivo: " << aux->motivo << endl;
+            return true;
+        }
+        aux = aux->siguiente;
+    }
+
+    cout << "El IDHospitalizacion " << IDHospitalizacion << " no existe" << endl;
+    return false;
+}
+
+bool Hospitalizaciones::ModificarMotivo(int IDHospitalizacion, string nuevoMotivo,
+                                         TablaHashingPaciente &pacientes, listaHabitacion &habitaciones) {
+    pnodoHospitalizacion aux = primero;
+    while (aux != NULL) {
+        if (aux->IDHospitalizacion == IDHospitalizacion) {
+
+            if (!pacientes.ExisteID(aux->IDPaciente)) {
+                cout << "El IDPaciente " << aux->IDPaciente << " asociado no existe" << endl;
+                return false;
+            }
+
+            if (!habitaciones.ExisteHabitacion(aux->IDHabitacion)) {
+                cout << "El IDHabitacion " << aux->IDHabitacion << " asociado no existe" << endl;
+                return false;
+            }
+
+            aux->motivo = nuevoMotivo;
+            cout << "Motivo actualizado correctamente." << endl;
             return true;
         }
         aux = aux->siguiente;
@@ -2417,20 +2537,144 @@ void MenuEliminar() {
     } while (opcion != 0);
 }
 
+void ModificarPais() {
+    int cod = leerEntero("Codigo de pais: ");
+    if (!paises.ExistePais(cod)) {
+        cout << "El codigo de pais " << cod << " no existe" << endl;
+        return;
+    }
+
+    string nuevoNombre = leerLinea("Nuevo nombre: ");
+    paises.Modificar(cod, nuevoNombre);
+}
+
+void ModificarCiudad() {
+    int codPais = leerEntero("Codigo de pais: ");
+    if (!paises.ExistePais(codPais)) {
+        cout << "El codigo de pais " << codPais << " no existe" << endl;
+        return;
+    }
+
+    int codCiudad = leerEntero("Codigo de ciudad: ");
+    if (!ciudades.ExisteCiudadEnPais(codPais, codCiudad)) {
+        cout << "El codigo de ciudad " << codCiudad << " no existe en el pais " << codPais << endl;
+        return;
+    }
+
+    string nuevoNombre = leerLinea("Nuevo nombre: ");
+    ciudades.ModificarNombre(codPais, codCiudad, nuevoNombre, paises);
+}
+
+void ModificarPaciente() {
+    int codCiudad = leerEntero("Codigo de ciudad: ");
+    if (!ciudades.ExisteCiudad(codCiudad)) {
+        cout << "El codigo de ciudad " << codCiudad << " no existe" << endl;
+        return;
+    }
+
+    int id = leerEntero("IDPaciente: ");
+    string telefono = leerLinea("Nuevo telefono: ");
+    string correo = leerLinea("Nuevo correo: ");
+    pacientes.ModificarTelefonoCorreo(codCiudad, id, telefono, correo, ciudades);
+}
+
+void ModificarMedico() {
+    int id = leerEntero("IDMedico: ");
+    if (!medicos.Buscar(id))
+        return;
+
+    string telefono = leerLinea("\nNuevo telefono: ");
+    string correo = leerLinea("Nuevo correo: ");
+    medicos.ModificarTelefonoCorreo(id, telefono, correo);
+}
+
+void ModificarEspecialidad() {
+    int id = leerEntero("IDEspecialidad: ");
+    if (!especialidades.ExisteEspecialidad(id)) {
+        cout << "El codigo de especialidad " << id << " no existe" << endl;
+        return;
+    }
+
+    string nuevaDescripcion = leerLinea("Nueva descripcion: ");
+    especialidades.ModificarDescripcion(id, nuevaDescripcion);
+}
+
+void ModificarCita() {
+    int id = leerEntero("IDCita: ");
+    if (!citas.Buscar(id, pacientes, medicos))
+        return;
+
+    string nuevoMotivo = leerLinea("\nNuevo motivo: ");
+    int nuevoEstado = leerEntero("Nuevo estado (0 Pendiente, 1 Confirmada): ");
+    citas.ModificarMotivoEstado(id, nuevoMotivo, nuevoEstado, pacientes, medicos);
+}
+
+void ModificarHabitacion() {
+    int id = leerEntero("IDHabitacion: ");
+    if (!habitaciones.ExisteHabitacion(id)) {
+        cout << "El codigo de habitacion " << id << " no existe" << endl;
+        return;
+    }
+
+    int nuevoEstado = leerEntero("Nuevo estado (0 Disponible, 1 Ocupada): ");
+    habitaciones.ModificarEstado(id, nuevoEstado);
+}
+
+void ModificarHospitalizacion() {
+    int id = leerEntero("IDHospitalizacion: ");
+    if (!hospitalizaciones.Buscar(id, pacientes, habitaciones))
+        return;
+
+    string nuevoMotivo = leerLinea("\nNuevo motivo: ");
+    hospitalizaciones.ModificarMotivo(id, nuevoMotivo, pacientes, habitaciones);
+}
+
+void MenuModificar() {
+    int opcion;
+    do {
+        cout << "\n--- Modificar ---" << endl;
+        cout << "1. Pais" << endl;
+        cout << "2. Ciudad" << endl;
+        cout << "3. Paciente" << endl;
+        cout << "4. Medico" << endl;
+        cout << "5. Especialidad" << endl;
+        cout << "6. Cita" << endl;
+        cout << "7. Habitacion" << endl;
+        cout << "8. Hospitalizacion" << endl;
+        cout << "0. Volver" << endl;
+        opcion = leerEntero("Opcion: ");
+
+        switch (opcion) {
+            case 1: ModificarPais(); break;
+            case 2: ModificarCiudad(); break;
+            case 3: ModificarPaciente(); break;
+            case 4: ModificarMedico(); break;
+            case 5: ModificarEspecialidad(); break;
+            case 6: ModificarCita(); break;
+            case 7: ModificarHabitacion(); break;
+            case 8: ModificarHospitalizacion(); break;
+            case 0: break;
+            default: cout << "Opcion invalida" << endl;
+        }
+    } while (opcion != 0);
+}
+
 void MenuMantenimiento() {
     int opcion;
     do {
         cout << "\n--- Mantenimiento de la Base de Datos ---" << endl;
         cout << "1. Inserciones" << endl;
         cout << "2. Busqueda" << endl;
-        cout << "3. Eliminaciones" << endl;
+        cout << "3. Modificaciones" << endl;
+        cout << "4. Eliminaciones" << endl;
         cout << "0. Volver" << endl;
         opcion = leerEntero("Opcion: ");
 
         switch (opcion) {
             case 1: MenuInsertar(); break;
             case 2: MenuBuscar(); break;
-            case 3: MenuEliminar(); break;
+            case 3: MenuModificar(); break;
+            case 4: MenuEliminar(); break;
             case 0: break;
             default: cout << "Opcion invalida" << endl;
         }
