@@ -402,7 +402,7 @@ class listaEspecialidad {
     ~listaEspecialidad();
  
     void Insertar(int idEspecialidad, string nombre, string descripcion);
-    bool ListaVacia() { return cabeza == NULL; }
+    bool ListaVacia() { return primero == NULL; }
     bool ExisteEspecialidad(int idEspecialidad);
     void Mostrar();
     void BuscarEspecialidad(int idEspecialidad);
@@ -411,33 +411,33 @@ class listaEspecialidad {
     void CargarArchivoEspecialidad(string nombreArchivo);
  
     private:
-    pnodoEspecialidad cabeza;
+    pnodoEspecialidad primero;
 };
  
 listaEspecialidad::~listaEspecialidad() {
     if (ListaVacia()) return;
  
-    pnodoEspecialidad aux = cabeza->siguiente;
+    pnodoEspecialidad aux = primero->siguiente;
     pnodoEspecialidad borrar;
-    while (aux != cabeza) {
+    while (aux != primero) {
         borrar = aux;
         aux = aux->siguiente;
         delete borrar;
     }
-    delete cabeza;
-    cabeza = NULL;
+    delete primero;
+    primero = NULL;
 }
  
 bool listaEspecialidad::ExisteEspecialidad(int idEspecialidad) {
     if (ListaVacia()) return false;
  
-    pnodoEspecialidad aux = cabeza;
+    pnodoEspecialidad aux = primero;
     do {
         if (aux->idEspecialidad == idEspecialidad) {
             return true;
         }
         aux = aux->siguiente;
-    } while (aux != cabeza);
+    } while (aux != primero);
  
     return false;
 }
@@ -451,16 +451,16 @@ void listaEspecialidad::Insertar(int idEspecialidad, string nombre, string descr
     pnodoEspecialidad nuevo = new nodoEspecialidad(idEspecialidad, nombre, descripcion);
  
     if (ListaVacia()) {
-        cabeza = nuevo;
-        nuevo->siguiente = cabeza;
-        nuevo->anterior = cabeza;
+        primero = nuevo;
+        nuevo->siguiente = primero;
+        nuevo->anterior = primero;
     }
     else {
-        pnodoEspecialidad ultimo = cabeza->anterior;
+        pnodoEspecialidad ultimo = primero->anterior;
         ultimo->siguiente = nuevo;
         nuevo->anterior = ultimo;
-        nuevo->siguiente = cabeza;
-        cabeza->anterior = nuevo;
+        nuevo->siguiente = primero;
+        primero->anterior = nuevo;
     }
 }
  
@@ -469,11 +469,11 @@ void listaEspecialidad::Mostrar() {
         cout << "No hay especialidades" << endl;
         return;
     }
-    pnodoEspecialidad aux = cabeza;
+    pnodoEspecialidad aux = primero;
     do {
         cout << aux->idEspecialidad << " - " << aux->nombre << " - " << aux->descripcion << " -> ";
         aux = aux->siguiente;
-    } while (aux != cabeza);
+    } while (aux != primero);
     cout << endl;
 }
  
@@ -483,7 +483,7 @@ void listaEspecialidad::BuscarEspecialidad(int idEspecialidad) {
         return;
     }
  
-    pnodoEspecialidad aux = cabeza;
+    pnodoEspecialidad aux = primero;
     do {
         if (aux->idEspecialidad == idEspecialidad) {
             cout << "El codigo de la especialidad es: " << aux->idEspecialidad << endl;
@@ -492,7 +492,7 @@ void listaEspecialidad::BuscarEspecialidad(int idEspecialidad) {
             return;
         }
         aux = aux->siguiente;
-    } while (aux != cabeza);
+    } while (aux != primero);
  
     cout << "La especialidad no existe" << endl;
 }
@@ -503,7 +503,7 @@ void listaEspecialidad::ModificarDescripcion(int idEspecialidad, string nuevaDes
         return;
     }
  
-    pnodoEspecialidad aux = cabeza;
+    pnodoEspecialidad aux = primero;
     do {
         if (aux->idEspecialidad == idEspecialidad) {
             aux->descripcion = nuevaDescripcion;
@@ -511,7 +511,7 @@ void listaEspecialidad::ModificarDescripcion(int idEspecialidad, string nuevaDes
             return;
         }
         aux = aux->siguiente;
-    } while (aux != cabeza);
+    } while (aux != primero);
 }
  
 void listaEspecialidad::CargarArchivoEspecialidad(string nombreArchivo) {
@@ -1107,11 +1107,11 @@ typedef nodoHabitacion *pnodoHabitacion;
 
 class listaHabitacion {
    public:
-    listaHabitacion() { cabeza = NULL; }
+    listaHabitacion() { primero = NULL; }
     ~listaHabitacion();
 
     void Insertar(int idHabitacion, string numero, string piso, int tipo, int estado);
-    bool ListaVacia() { return cabeza == NULL; }
+    bool ListaVacia() { return primero == NULL; }
     bool ExisteHabitacion(int idHabitacion);
     void Mostrar();
     void BuscarHabitacion(int idHabitacion);
@@ -1121,33 +1121,33 @@ class listaHabitacion {
     void CargarArchivoHabitacion(string nombreArchivo);
 
     private:
-    pnodoHabitacion cabeza;
+    pnodoHabitacion primero;
 };
 
 listaHabitacion::~listaHabitacion() {
     if (ListaVacia()) return;
 
-    pnodoHabitacion aux = cabeza->siguiente;
+    pnodoHabitacion aux = primero->siguiente;
     pnodoHabitacion borrar;
-    while (aux != cabeza) {
+    while (aux != primero) {
         borrar = aux;
         aux = aux->siguiente;
         delete borrar;
     }
-    delete cabeza;
-    cabeza = NULL;
+    delete primero;
+    primero = NULL;
 }
 
 bool listaHabitacion::ExisteHabitacion(int idHabitacion) {
     if (ListaVacia()) return false;
 
-    pnodoHabitacion aux = cabeza;
+    pnodoHabitacion aux = primero;
     do {
         if (aux->idHabitacion == idHabitacion) {
             return true;
         }
         aux = aux->siguiente;
-    } while (aux != cabeza);
+    } while (aux != primero);
 
     return false;
 }
@@ -1161,16 +1161,16 @@ void listaHabitacion::Insertar(int idHabitacion, string numero, string piso, int
     pnodoHabitacion nuevo = new nodoHabitacion(idHabitacion, numero, piso, tipo, estado);
 
     if (ListaVacia()) {
-        cabeza = nuevo;
-        nuevo->siguiente = cabeza;
-        nuevo->anterior = cabeza;
+        primero = nuevo;
+        nuevo->siguiente = primero;
+        nuevo->anterior = primero;
     }
     else {
-        pnodoHabitacion ultimo = cabeza->anterior;
+        pnodoHabitacion ultimo = primero->anterior;
         ultimo->siguiente = nuevo;
         nuevo->anterior = ultimo;
-        nuevo->siguiente = cabeza;
-        cabeza->anterior = nuevo;
+        nuevo->siguiente = primero;
+        primero->anterior = nuevo;
     }
 }
 
@@ -1179,12 +1179,12 @@ void listaHabitacion::Mostrar() {
         cout << "No hay habitaciones" << endl;
         return;
     }
-    pnodoHabitacion aux = cabeza;
+    pnodoHabitacion aux = primero;
     do {
         cout << aux->idHabitacion << " - " << aux->numero << " - " << aux->piso
              << " - " << aux->tipo << " - " << aux->estado << " -> ";
         aux = aux->siguiente;
-    } while (aux != cabeza);
+    } while (aux != primero);
     cout << endl;
 }
 
@@ -1194,7 +1194,7 @@ void listaHabitacion::BuscarHabitacion(int idHabitacion) {
         return;
     }
 
-    pnodoHabitacion aux = cabeza;
+    pnodoHabitacion aux = primero;
     do {
         if (aux->idHabitacion == idHabitacion) {
             cout << "El codigo de la habitacion es: " << aux->idHabitacion << endl;
@@ -1205,7 +1205,7 @@ void listaHabitacion::BuscarHabitacion(int idHabitacion) {
             return;
         }
         aux = aux->siguiente;
-    } while (aux != cabeza);
+    } while (aux != primero);
 
     cout << "La habitacion no existe" << endl;
 }
@@ -1216,7 +1216,7 @@ void listaHabitacion::ModificarEstado(int idHabitacion, int nuevoEstado) {
         return;
     }
 
-    pnodoHabitacion aux = cabeza;
+    pnodoHabitacion aux = primero;
     do {
         if (aux->idHabitacion == idHabitacion) {
             aux->estado = nuevoEstado;
@@ -1224,7 +1224,7 @@ void listaHabitacion::ModificarEstado(int idHabitacion, int nuevoEstado) {
             return;
         }
         aux = aux->siguiente;
-    } while (aux != cabeza);
+    } while (aux != primero);
 }
 
 void listaHabitacion::ReporteHabitacionesPorEstado(int estado) {
@@ -1233,14 +1233,14 @@ void listaHabitacion::ReporteHabitacionesPorEstado(int estado) {
         return;
     }
 
-    pnodoHabitacion aux = cabeza;
+    pnodoHabitacion aux = primero;
     do {
         if (aux->estado == estado) {
             cout << aux->idHabitacion << " - " << aux->numero << " - " << aux->piso
                  << " - " << aux->tipo << " -> ";
         }
         aux = aux->siguiente;
-    } while (aux != cabeza);
+    } while (aux != primero);
     cout << endl;
 }
 
@@ -1938,7 +1938,8 @@ bool listaPacientes::Eliminar(int IDPaciente, Citas &citas, Hospitalizaciones &h
     int citasEliminadas = citas.EliminarCitasDePaciente(IDPaciente);
     int hospitalizacionesEliminadas = hospitalizaciones.EliminarHospitalizacionesDePaciente(IDPaciente);
     delete borrar;
-
+	
+	
     cout << "Paciente " << IDPaciente << " eliminado correctamente." << endl;
     cout << "  Citas eliminadas: " << citasEliminadas << endl;
     cout << "  Hospitalizaciones eliminadas: " << hospitalizacionesEliminadas << endl;
@@ -1961,8 +1962,8 @@ int listaPacientes::EliminarPorCiudad(int codCiudad, Citas &citas, Hospitalizaci
 
 bool TablaHashingPaciente::EliminarPaciente(int IDPaciente, Citas &citas, Hospitalizaciones &hospitalizaciones) {
     int pos = FuncionHash(IDPaciente);
-    if (!tabla[pos]->ExisteID(IDPaciente)) {
-        cout << "El paciente con IDPaciente " << IDPaciente << " no existe" << endl;
+    if )) {
+        cout << "El paciente con IDPaciente " << ID(!tabla[pos]->ExisteID(IDPacientePaciente << " no existe" << endl;
         return false;
     }
     return tabla[pos]->Eliminar(IDPaciente, citas, hospitalizaciones);
@@ -2088,12 +2089,12 @@ bool listaCiudad::EliminarCiudad(int IDPais, int IDCiudad, Pais &listaPaises, Ta
         delete borrar;
     }
     else {
-        pnodoCiudad anterior = primero;
-        while (anterior->siguiente->codCiudad != IDCiudad) {
-            anterior = anterior->siguiente;
+        pnodoCiudad aux = primero;
+        while (aux->siguiente->codCiudad != IDCiudad) {
+            aux = aux->siguiente;
         }
-        pnodoCiudad borrar = anterior->siguiente;
-        anterior->siguiente = borrar->siguiente;
+        pnodoCiudad borrar = aux->siguiente;
+        aux->siguiente = borrar->siguiente;
         delete borrar;
     }
 
@@ -2140,19 +2141,19 @@ bool listaEspecialidad::EliminarEspecialidad(int idEspecialidad, TablaHashingMed
 
     int medicosEliminados = medicos.EliminarMedicosDeEspecialidad(idEspecialidad, citas);
 
-    pnodoEspecialidad borrar = cabeza;
+    pnodoEspecialidad borrar = primero;
     while (borrar->idEspecialidad != idEspecialidad) {
         borrar = borrar->siguiente;
     }
 
     if (borrar->siguiente == borrar) {
-        cabeza = NULL;
+        primero = NULL;
     }
     else {
         borrar->anterior->siguiente = borrar->siguiente;
         borrar->siguiente->anterior = borrar->anterior;
-        if (borrar == cabeza)
-            cabeza = borrar->siguiente;
+        if (borrar == primero)
+            primero = borrar->siguiente;
     }
     delete borrar;
 
@@ -2169,19 +2170,19 @@ bool listaHabitacion::EliminarHabitacion(int idHabitacion, Hospitalizaciones &ho
 
     int hospitalizacionesEliminadas = hospitalizaciones.EliminarHospitalizacionesDeHabitacion(idHabitacion);
 
-    pnodoHabitacion borrar = cabeza;
+    pnodoHabitacion borrar = primero;
     while (borrar->idHabitacion != idHabitacion) {
         borrar = borrar->siguiente;
     }
 
     if (borrar->siguiente == borrar) {
-        cabeza = NULL;
+        primero = NULL;
     }
     else {
         borrar->anterior->siguiente = borrar->siguiente;
         borrar->siguiente->anterior = borrar->anterior;
-        if (borrar == cabeza)
-            cabeza = borrar->siguiente;
+        if (borrar == primero)
+            primero = borrar->siguiente;
     }
     delete borrar;
 
