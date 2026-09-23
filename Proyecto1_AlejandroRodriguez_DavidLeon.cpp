@@ -856,7 +856,7 @@ class listaMedicos {
         bool ListaVacia() { return primero == NULL; }
         bool ExisteID(int IDMedico);
         void Insertar(int IDMedico, string nombre, string telefono, string correo, int idEspecialidad);
-        bool Buscar(int IDMedico);
+        bool Buscar(int IDMedico, listaEspecialidad &listaEspecialidades);
         bool ModificarTelefonoCorreo(int IDMedico, string telefono, string correo);
         bool Eliminar(int IDMedico);
         int EliminarPorEspecialidad(int idEspecialidad, Citas &citas);
@@ -899,10 +899,16 @@ void listaMedicos::Insertar(int IDMedico, string nombre, string telefono, string
     }
 }
 
-bool listaMedicos::Buscar(int IDMedico) {
+bool listaMedicos::Buscar(int IDMedico, listaEspecialidad &listaEspecialidades) {
     pnodoMedico aux = primero;
     while (aux != NULL) {
         if (aux->IDMedico == IDMedico) {
+
+            if (!listaEspecialidades.ExisteEspecialidad(aux->idEspecialidad)) {
+                cout << "El codigo de especialidad " << aux->idEspecialidad << " asociado al medico no existe" << endl;
+                return false;
+            }
+
             cout << endl << "IDMedico: " << aux->IDMedico << endl;
             cout << "Nombre: " << aux->nombre << endl;
             cout << "Telefono: " << aux->telefono << endl;
@@ -983,7 +989,7 @@ public:
 
     void Insertar(int IDMedico, string nombre, string telefono, string correo, int idEspecialidad,
                   listaEspecialidad &listaEspecialidades);
-    bool Buscar(int IDMedico);
+    bool Buscar(int IDMedico, listaEspecialidad &listaEspecialidades);
     bool ModificarTelefonoCorreo(int IDMedico, string telefono, string correo);
     void Mostrar();
     void CargarArchivoMedico(string nombreArchivo, listaEspecialidad &listaEspecialidades);
@@ -1011,13 +1017,15 @@ void TablaHashingMedico::Insertar(int IDMedico, string nombre, string telefono, 
     cout << "Medico " << IDMedico << " insertado en la posicion " << pos << endl;
 }
 
-bool TablaHashingMedico::Buscar(int IDMedico) {
+bool TablaHashingMedico::Buscar(int IDMedico, listaEspecialidad &listaEspecialidades) {
     int pos = FuncionHash(IDMedico);
-    if (!tabla[pos]->Buscar(IDMedico)) {
+
+    if (!tabla[pos]->ExisteID(IDMedico)) {
         cout << "El medico con IDMedico " << IDMedico << " no existe" << endl;
         return false;
     }
-    return true;
+
+    return tabla[pos]->Buscar(IDMedico, listaEspecialidades);
 }
 
 bool TablaHashingMedico::ModificarTelefonoCorreo(int IDMedico, string telefono, string correo) {
@@ -1312,17 +1320,21 @@ class Citas {
 
         void Insertar(int IDCita, int IDPaciente, int IDMedico, int IDEspecialidad,
                       string fecha, string hora, string motivo, int estado,
-                      TablaHashingPaciente &pacientes, TablaHashingMedico &medicos);
-        bool Buscar(int IDCita, TablaHashingPaciente &pacientes, TablaHashingMedico &medicos);
+                      TablaHashingPaciente &pacientes, TablaHashingMedico &medicos,
+                      listaEspecialidad &listaEspecialidades);
+        bool Buscar(int IDCita, TablaHashingPaciente &pacientes, TablaHashingMedico &medicos,
+                    listaEspecialidad &listaEspecialidades);
         bool ModificarMotivoEstado(int IDCita, string nuevoMotivo, int nuevoEstado,
-                                    TablaHashingPaciente &pacientes, TablaHashingMedico &medicos);
+                                    TablaHashingPaciente &pacientes, TablaHashingMedico &medicos,
+                                    listaEspecialidad &listaEspecialidades);
         void Mostrar();
 
         bool EliminarCita(int IDCita, TablaHashingPaciente &pacientes, TablaHashingMedico &medicos);
         int EliminarCitasDePaciente(int IDPaciente);
         int EliminarCitasDeMedico(int IDMedico);
 
-        void LeerDesdeArchivo(string nombreArchivo, TablaHashingPaciente &pacientes, TablaHashingMedico &medicos);
+        void LeerDesdeArchivo(string nombreArchivo, TablaHashingPaciente &pacientes, TablaHashingMedico &medicos,
+                              listaEspecialidad &listaEspecialidades);
 
     private:
         pnodoCita primero;
@@ -1354,14 +1366,15 @@ bool Citas::ExisteID(int IDCita) {
 
 void Citas::Insertar(int IDCita, int IDPaciente, int IDMedico, int IDEspecialidad,
                       string fecha, string hora, string motivo, int estado,
-                      TablaHashingPaciente &pacientes, TablaHashingMedico &medicos) {
+                      TablaHashingPaciente &pacientes, TablaHashingMedico &medicos,
+                      listaEspecialidad &listaEspecialidades) {
 
     if (!pacientes.ExisteID(IDPaciente)) {
         cout << "El IDPaciente " << IDPaciente << " no existe" << endl;
         return;
     }
 
-    if (!medicos.Buscar(IDMedico)) {
+    if (!medicos.Buscar(IDMedico, listaEspecialidades)) {
         return;
     }
 
@@ -1386,7 +1399,8 @@ void Citas::Insertar(int IDCita, int IDPaciente, int IDMedico, int IDEspecialida
     cout << "Cita " << IDCita << " insertada correctamente." << endl;
 }
 
-bool Citas::Buscar(int IDCita, TablaHashingPaciente &pacientes, TablaHashingMedico &medicos) {
+bool Citas::Buscar(int IDCita, TablaHashingPaciente &pacientes, TablaHashingMedico &medicos,
+                    listaEspecialidad &listaEspecialidades) {
     pnodoCita aux = primero;
     while (aux != NULL) {
         if (aux->IDCita == IDCita) {
@@ -1396,7 +1410,7 @@ bool Citas::Buscar(int IDCita, TablaHashingPaciente &pacientes, TablaHashingMedi
                 return false;
             }
 
-            if (!medicos.Buscar(aux->IDMedico)) {
+            if (!medicos.Buscar(aux->IDMedico, listaEspecialidades)) {
                 return false;
             }
 
@@ -1418,7 +1432,8 @@ bool Citas::Buscar(int IDCita, TablaHashingPaciente &pacientes, TablaHashingMedi
 }
 
 bool Citas::ModificarMotivoEstado(int IDCita, string nuevoMotivo, int nuevoEstado,
-                                   TablaHashingPaciente &pacientes, TablaHashingMedico &medicos) {
+                                   TablaHashingPaciente &pacientes, TablaHashingMedico &medicos,
+                                   listaEspecialidad &listaEspecialidades) {
     pnodoCita aux = primero;
     while (aux != NULL) {
         if (aux->IDCita == IDCita) {
@@ -1428,7 +1443,7 @@ bool Citas::ModificarMotivoEstado(int IDCita, string nuevoMotivo, int nuevoEstad
                 return false;
             }
 
-            if (!medicos.Buscar(aux->IDMedico)) {
+            if (!medicos.Buscar(aux->IDMedico, listaEspecialidades)) {
                 return false;
             }
 
@@ -1458,7 +1473,8 @@ void Citas::Mostrar() {
     cout << "NULL" << endl;
 }
 
-void Citas::LeerDesdeArchivo(string nombreArchivo, TablaHashingPaciente &pacientes, TablaHashingMedico &medicos) {
+void Citas::LeerDesdeArchivo(string nombreArchivo, TablaHashingPaciente &pacientes, TablaHashingMedico &medicos,
+                              listaEspecialidad &listaEspecialidades) {
     ifstream archivo(nombreArchivo);
 
     if (!archivo.is_open()) {
@@ -1501,7 +1517,7 @@ void Citas::LeerDesdeArchivo(string nombreArchivo, TablaHashingPaciente &pacient
         int estado = stoi(campoEstado);
 
         Insertar(IDCita, IDPaciente, IDMedico, IDEspecialidad, fecha, hora, motivo, estado,
-                 pacientes, medicos);
+                 pacientes, medicos, listaEspecialidades);
     }
 
     archivo.close();
@@ -2219,7 +2235,7 @@ void LeerArchivos() {
     medicos.CargarArchivoMedico(CARPETA + "Medicos.txt", especialidades);
     habitaciones.CargarArchivoHabitacion(CARPETA + "Habitaciones.txt");
     hospitalizaciones.LeerDesdeArchivo(CARPETA + "Hospitalizaciones.txt", pacientes, habitaciones);
-    citas.LeerDesdeArchivo(CARPETA + "Citas.txt", pacientes, medicos);
+    citas.LeerDesdeArchivo(CARPETA + "Citas.txt", pacientes, medicos, especialidades);
 
     cout << "\nTodos los archivos fueron leidos." << endl;
 }
@@ -2294,7 +2310,7 @@ void InsertarCita() {
     string hora = leerLinea("Hora (hh:mm): ");
     string motivo = leerLinea("Motivo: ");
     int estado = leerEntero("Estado (0 Pendiente, 1 Confirmada): ");
-    citas.Insertar(id, idPaciente, idMedico, idEspecialidad, fecha, hora, motivo, estado, pacientes, medicos);
+    citas.Insertar(id, idPaciente, idMedico, idEspecialidad, fecha, hora, motivo, estado, pacientes, medicos, especialidades);
 }
 
 void MenuInsertar() {
@@ -2351,7 +2367,7 @@ void BuscarEspecialidad() {
 
 void BuscarMedico() {
     int id = leerEntero("IDMedico: ");
-    medicos.Buscar(id);
+    medicos.Buscar(id, especialidades);
 }
 
 void BuscarHabitacion() {
@@ -2366,7 +2382,7 @@ void BuscarHospitalizacion() {
 
 void BuscarCita() {
     int id = leerEntero("IDCita: ");
-    citas.Buscar(id, pacientes, medicos);
+    citas.Buscar(id, pacientes, medicos, especialidades);
 }
 
 void MenuBuscar() {
@@ -2456,7 +2472,7 @@ void EliminarPaciente() {
 
 void EliminarMedico() {
     int id = leerEntero("IDMedico: ");
-    if (!medicos.Buscar(id))
+    if (!medicos.Buscar(id, especialidades))
         return;
 
     if (!Confirmar("\nSe eliminaran tambien sus citas. Desea continuar?"))
@@ -2481,7 +2497,7 @@ void EliminarEspecialidad() {
 
 void EliminarCita() {
     int id = leerEntero("IDCita: ");
-    if (!citas.Buscar(id, pacientes, medicos))
+    if (!citas.Buscar(id, pacientes, medicos, especialidades))
         return;
 
     if (!Confirmar("\nDesea eliminar esta cita?"))
@@ -2588,7 +2604,7 @@ void ModificarPaciente() {
 
 void ModificarMedico() {
     int id = leerEntero("IDMedico: ");
-    if (!medicos.Buscar(id))
+    if (!medicos.Buscar(id, especialidades))
         return;
 
     string telefono = leerLinea("\nNuevo telefono: ");
@@ -2609,12 +2625,12 @@ void ModificarEspecialidad() {
 
 void ModificarCita() {
     int id = leerEntero("IDCita: ");
-    if (!citas.Buscar(id, pacientes, medicos))
+    if (!citas.Buscar(id, pacientes, medicos, especialidades))
         return;
 
     string nuevoMotivo = leerLinea("\nNuevo motivo: ");
     int nuevoEstado = leerEntero("Nuevo estado (0 Pendiente, 1 Confirmada): ");
-    citas.ModificarMotivoEstado(id, nuevoMotivo, nuevoEstado, pacientes, medicos);
+    citas.ModificarMotivoEstado(id, nuevoMotivo, nuevoEstado, pacientes, medicos, especialidades);
 }
 
 void ModificarHabitacion() {
