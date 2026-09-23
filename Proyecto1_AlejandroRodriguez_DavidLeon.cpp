@@ -1374,7 +1374,8 @@ void Citas::Insertar(int IDCita, int IDPaciente, int IDMedico, int IDEspecialida
         return;
     }
 
-    if (!medicos.Buscar(IDMedico, listaEspecialidades)) {
+    if (!medicos.ExisteID(IDMedico)) {
+        cout << "El IDMedico " << IDMedico << " no existe" << endl;
         return;
     }
 
@@ -1410,7 +1411,8 @@ bool Citas::Buscar(int IDCita, TablaHashingPaciente &pacientes, TablaHashingMedi
                 return false;
             }
 
-            if (!medicos.Buscar(aux->IDMedico, listaEspecialidades)) {
+            if (!medicos.ExisteID(aux->IDMedico)) {
+                cout << "El IDMedico " << aux->IDMedico << " asociado no existe" << endl;
                 return false;
             }
 
@@ -1443,7 +1445,8 @@ bool Citas::ModificarMotivoEstado(int IDCita, string nuevoMotivo, int nuevoEstad
                 return false;
             }
 
-            if (!medicos.Buscar(aux->IDMedico, listaEspecialidades)) {
+            if (!medicos.ExisteID(aux->IDMedico)) {
+                cout << "El IDMedico " << aux->IDMedico << " asociado no existe" << endl;
                 return false;
             }
 
@@ -2604,10 +2607,13 @@ void ModificarPaciente() {
 
 void ModificarMedico() {
     int id = leerEntero("IDMedico: ");
-    if (!medicos.Buscar(id, especialidades))
+    
+    if (!medicos.ExisteID(id)) {
+        cout << "El medico con IDMedico " << id << " no existe" << endl;
         return;
+    }
 
-    string telefono = leerLinea("\nNuevo telefono: ");
+    string telefono = leerLinea("Nuevo telefono: ");
     string correo = leerLinea("Nuevo correo: ");
     medicos.ModificarTelefonoCorreo(id, telefono, correo);
 }
