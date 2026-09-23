@@ -398,7 +398,7 @@ typedef nodoEspecialidad *pnodoEspecialidad;
  
 class listaEspecialidad {
    public:
-    listaEspecialidad() { cabeza = NULL; }
+    listaEspecialidad() { primero = NULL; }
     ~listaEspecialidad();
  
     void Insertar(int idEspecialidad, string nombre, string descripcion);
@@ -1938,8 +1938,7 @@ bool listaPacientes::Eliminar(int IDPaciente, Citas &citas, Hospitalizaciones &h
     int citasEliminadas = citas.EliminarCitasDePaciente(IDPaciente);
     int hospitalizacionesEliminadas = hospitalizaciones.EliminarHospitalizacionesDePaciente(IDPaciente);
     delete borrar;
-	
-	
+
     cout << "Paciente " << IDPaciente << " eliminado correctamente." << endl;
     cout << "  Citas eliminadas: " << citasEliminadas << endl;
     cout << "  Hospitalizaciones eliminadas: " << hospitalizacionesEliminadas << endl;
@@ -1962,8 +1961,8 @@ int listaPacientes::EliminarPorCiudad(int codCiudad, Citas &citas, Hospitalizaci
 
 bool TablaHashingPaciente::EliminarPaciente(int IDPaciente, Citas &citas, Hospitalizaciones &hospitalizaciones) {
     int pos = FuncionHash(IDPaciente);
-    if )) {
-        cout << "El paciente con IDPaciente " << ID(!tabla[pos]->ExisteID(IDPacientePaciente << " no existe" << endl;
+    if (!tabla[pos]->ExisteID(IDPaciente)) {
+        cout << "El paciente con IDPaciente " << IDPaciente << " no existe" << endl;
         return false;
     }
     return tabla[pos]->Eliminar(IDPaciente, citas, hospitalizaciones);
@@ -2089,12 +2088,12 @@ bool listaCiudad::EliminarCiudad(int IDPais, int IDCiudad, Pais &listaPaises, Ta
         delete borrar;
     }
     else {
-        pnodoCiudad aux = primero;
-        while (aux->siguiente->codCiudad != IDCiudad) {
-            aux = aux->siguiente;
+        pnodoCiudad anterior = primero;
+        while (anterior->siguiente->codCiudad != IDCiudad) {
+            anterior = anterior->siguiente;
         }
-        pnodoCiudad borrar = aux->siguiente;
-        aux->siguiente = borrar->siguiente;
+        pnodoCiudad borrar = anterior->siguiente;
+        anterior->siguiente = borrar->siguiente;
         delete borrar;
     }
 
