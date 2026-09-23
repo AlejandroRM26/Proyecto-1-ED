@@ -582,7 +582,7 @@ class listaPacientes {
         bool ExisteID(int IDPaciente);
         void Insertar(int IDPaciente, string nombre, string fechaNacimiento,
                         string telefono, int codCiudad, int codPais, string correo);
-        bool Buscar(int IDPaciente);
+        bool Buscar(int IDPaciente, listaCiudad &listaCiudades);
         bool ExisteEnCiudad(int codCiudad, int IDPaciente);
         bool ModificarTelefonoCorreo(int IDPaciente, string telefono, string correo);
         bool Eliminar(int IDPaciente, Citas &citas, Hospitalizaciones &hospitalizaciones);
@@ -628,10 +628,16 @@ void listaPacientes::Insertar(int IDPaciente, string nombre, string fechaNacimie
         }
     }
 
-bool listaPacientes::Buscar(int IDPaciente) {
+bool listaPacientes::Buscar(int IDPaciente, listaCiudad &listaCiudades) {
     pnodoPaciente aux = primero;
     while (aux != NULL) {
         if (aux->IDPaciente == IDPaciente) {
+
+            if (!listaCiudades.ExisteCiudad(aux->codCiudad)) {
+                cout << "El codigo de ciudad " << aux->codCiudad << " asociado al paciente no existe" << endl;
+                return false;
+            }
+
             cout << endl << "IDPaciente: " << aux->IDPaciente << endl;
             cout << "Nombre: " << aux->nombre << endl;
             cout << "Fecha de nacimiento: " << aux->fechaNacimiento << endl;
@@ -701,7 +707,7 @@ public:
     void Insertar(int IDPaciente, string nombre, string fechaNacimiento, string telefono,
                   int codCiudad, int codPais, string correo,
                   listaCiudad &listaCiudades, Pais &listaPaises);
-    bool Buscar(int IDPaciente);
+    bool Buscar(int IDPaciente, listaCiudad &listaCiudades);
     bool ExisteID(int IDPaciente);
     bool ModificarTelefonoCorreo(int codCiudad, int IDPaciente, string telefono, string correo,
                                   listaCiudad &listaCiudades);
@@ -736,13 +742,15 @@ void TablaHashingPaciente::Insertar(int IDPaciente, string nombre, string fechaN
     cout << "Paciente " << IDPaciente << " insertado en la posicion " << pos << endl;
 }
 
-bool TablaHashingPaciente::Buscar(int IDPaciente) {
+bool TablaHashingPaciente::Buscar(int IDPaciente, listaCiudad &listaCiudades) {
     int pos = FuncionHash(IDPaciente);
-    if (!tabla[pos]->Buscar(IDPaciente)) {
+
+    if (!tabla[pos]->ExisteID(IDPaciente)) {
         cout << "El paciente con IDPaciente " << IDPaciente << " no existe" << endl;
         return false;
     }
-    return true;
+
+    return tabla[pos]->Buscar(IDPaciente, listaCiudades);
 }
 
 bool TablaHashingPaciente::ExisteID(int IDPaciente) {
@@ -2333,7 +2341,7 @@ void BuscarCiudad() {
 
 void BuscarPaciente() {
     int id = leerEntero("IDPaciente: ");
-    pacientes.Buscar(id);
+    pacientes.Buscar(id, ciudades);
 }
 
 void BuscarEspecialidad() {
@@ -2437,7 +2445,7 @@ void EliminarCiudad() {
 
 void EliminarPaciente() {
     int id = leerEntero("IDPaciente: ");
-    if (!pacientes.Buscar(id))
+    if (!pacientes.Buscar(id, ciudades))
         return;
 
     if (!Confirmar("\nSe eliminaran tambien sus citas y hospitalizaciones. Desea continuar?"))
